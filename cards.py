@@ -73,13 +73,18 @@ class Hand:
 
     def calculate_score(self):
         score = 0
+        number_of_aces = 0
         for card in self.cards:
             if card.rank in 'TJQK':
                 score += 10
             elif card.rank == 'A':
+                number_of_aces += 1
                 score += 11
-                if score > 21:
-                    score -= 10
             else:
                 score += int(card.rank)
+
+            if score > 21 and number_of_aces:
+                score -= 10
+                number_of_aces -= 1
+
         return score

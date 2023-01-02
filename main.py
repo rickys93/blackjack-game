@@ -38,7 +38,7 @@ class BlackjackGame:
         return players
 
     def initialize_round(self):
-        self.ui.print_new_round('NEW ROUND')
+        self.ui.print_borders('NEW ROUND')
         self.ui.print_balances()
 
         self.players.choose_bet_sizes()
@@ -51,7 +51,7 @@ class BlackjackGame:
     def play_round(self):
         self.initialize_round()
 
-        self.players.play_round(self.deck)
+        self.players.play_round(self.deck, self.dealer)
 
         if not self.players.all_busted:
             self.dealer.play(self.deck)
@@ -66,14 +66,13 @@ class BlackjackGame:
         while self.players.list:
             self.play_round()
 
-        self.ui.print_new_round('All players have been busted, game over!')
+        self.ui.print_borders('All players have been busted, game over!')
 
 
 
 
 game = BlackjackGame()
 game.play()
-
 
 
 

@@ -6,7 +6,7 @@ class UserInterface:
         self.deck = deck
 
     @staticmethod
-    def print_new_round(message):
+    def print_borders(message):
         line = len(message) * '_'
         print(f'{line}\n\n{message}\n{line}')
 
@@ -14,6 +14,14 @@ class UserInterface:
     def print_end_round():
         end_round_message = '\nRound finished.\n'
         print(end_round_message)
+
+    @staticmethod
+    def print_dealers_hand(dealer):
+        print(f'Dealer\'s hand: {str(dealer.hand)}')
+
+    @staticmethod
+    def print_dealers_hand_and_score(dealer):
+        print(f'Dealer\'s hand: {str(dealer.hand)}, Score: {dealer.score}')
 
     def print_balances(self):
         players_balance_message = 'Player bank balances...\n'
@@ -27,3 +35,4 @@ class UserInterface:
             players_hand_message += f'{player.name}: {str(player.hand)}, '
         players_hand_message = players_hand_message[:-2] + '\n'
         print(players_hand_message)
+
