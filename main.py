@@ -1,3 +1,5 @@
+import time
+
 from cards import (
     Deck,
     Card,
@@ -5,14 +7,10 @@ from cards import (
 )
 from players import (
     Dealer,
-    Player
+    Player,
+    Players
 )
-
-class UserInterface:
-
-    def __init__(self) -> None:
-        pass
-    #######################
+from user_interface import UserInterface
 
 
 class BlackjackGame:
@@ -20,7 +18,8 @@ class BlackjackGame:
     dealer = Dealer()
 
     def __init__(self) -> None:
-        self.players = self.get_player_names()
+        self.players = Players([Player('John', 1000), Player('James', 2000)])
+        self.ui = UserInterface(self.players, self.dealer, self.deck)
 
     def get_player_names(self):
         player_number = 1
@@ -31,40 +30,49 @@ class BlackjackGame:
             if not name and len(players) > 0:
                 break
 
-            funds = input(f'How much money is {name} playing with? ')
-            player = Player(name, float(funds))
+            balance = input(f'How much money is {name} playing with? ')
+            player = Player(name, float(balance))
             players.append(player)
             player_number += 1
 
         return players
 
     def initialize_round(self):
-        for player in self.players:
-            player.choose_bet_size()
+        self.ui.print_new_round('NEW ROUND')
+        self.ui.print_balances()
+
+        self.players.choose_bet_sizes()
 
         self.deck.shuffle()
         self.deck.deal(self.players, self.dealer)
 
-        print(f'Dealer: {str(self.dealer.hand)}')
-        player_hand_message = ''
-        for player in self.players:
-            player_hand_message += f'{player.name}: {str(player.hand)}, '
-        print(player_hand_message[:-2])
+        self.ui.print_hands()
 
     def play_round(self):
         self.initialize_round()
 
-        for player in self.players:
-            player.play(self.deck)
+        self.players.play_round(self.deck)
 
-        self.dealer.play()
+        if not self.players.all_busted:
+            self.dealer.play(self.deck)
 
-        
+        self.players.determine_results(self.dealer)
+
+        self.ui.print_end_round()
+        self.players.process_balances()
+        time.sleep(1)
+
+    def play(self):
+        while self.players.list:
+            self.play_round()
+
+        self.ui.print_new_round('All players have been busted, game over!')
+
 
 
 
 game = BlackjackGame()
-game.play_round()
+game.play()
 
 
 
