@@ -6,15 +6,13 @@ class Participant:
     score = None
     busted = False
     got_blackjack = False
-
-    def __init__(self) -> None:
-        pass
     
     def hit(self, deck):
         time.sleep(1)
         new_card = deck.cards.pop(0)
         self.hand.cards.append(new_card)
         print(f'{self.name} hits... {str(new_card)}')
+        self.score = self.hand.calculate_score()
 
     def stand(self):
         print(f'{self.name} stands.')
@@ -23,46 +21,55 @@ class Participant:
 
 
 class Player(Participant):
-    
-    def __init__(self, name: str, balance: float) -> None:
+   
+    def __init__(self, name: str, balance: float, player_id: int) -> None:
         self.name = name
         self.balance = balance
+        self.player_id = player_id
 
     def choose_bet_size(self):
         bet_size = float('inf')
         while bet_size > self.balance:
             if bet_size != float('inf'):
                 print('Bet size larger than balance, please enter amount smaller than balance.')
-            bet_size = float(input(f'{self.name} bet size: £'))
+            bet_size = float(input(f'{self.name} bet size: £ '))
         
         self.bet_size = bet_size
+        self.balance -= bet_size
 
     def lose(self):
-        print(f'{self.name} loses £{self.bet_size}')
-        self.balance -= self.bet_size
+        self.round_result = 'lose'
 
     def win(self):
-        print(f'{self.name} wins £{self.bet_size}!')
-        self.balance += self.bet_size
+        self.balance += 2 * self.bet_size
+        self.round_result = 'win'
 
     def bust(self):
         print(f'{self.name} score: {self.score}')
         print(f'PLAYER BUST')
+        self.round_result = 'bust'
         self.busted = True
 
     def push(self):
-        print(f'{self.name} push')
+        self.round_result = 'push'
+
+    def double(self, deck):
+        time.sleep(1)
+        self.bet_size *= 2
+        new_card = deck.cards.pop(0)
+        self.hand.cards.append(new_card)
+        print(f'{self.name} doubles... {str(new_card)}')
+        self.play(deck, double=True)
+        time.sleep(1)
 
     def blackjack(self):
-        win_amount = self.bet_size * 1.5
-        print(f'BLACKJACK!!\n{self.name} wins £{win_amount}!')
-        self.balance += win_amount
+        self.balance += self.bet_size * 2.5
+        self.round_result = 'blackjack'
 
-    def play(self, deck):
+    def play(self, deck, double=False):
         self.score = self.hand.calculate_score()
-
         print(f'{self.name}\'s hand: {str(self.hand)}, Score: {self.score}')
-
+            
         if self.score > 21:
             self.bust()
             return
@@ -73,9 +80,17 @@ class Player(Participant):
             self.stand()
             return
 
-        decision = input('Hit or stand? (H/S) ')
+        if double:
+            return
+
+        decision = ui.find_player_decision(self)
+        
         if decision.lower() == 's':
             self.stand()
+            return
+
+        if decision.lower() == 'd':
+            self.double(deck)
             return
 
         if decision.lower() == 'h':
@@ -98,7 +113,7 @@ class Player(Participant):
 
         if self.got_blackjack:
             if not dealer.got_blackjack:
-                self.blackjack(dealer)
+                self.blackjack()
             else:
                 self.push()
             return
@@ -126,12 +141,12 @@ class Player(Participant):
 
 class Dealer(Participant):
     name = 'Dealer'
-    busted = False
 
     def bust(self):
         print(f'{self.name} score: {self.score}')
         print(f'DEALER BUST')
         self.busted = True
+        time.sleep(1)
 
     def play(self, deck):
         self.busted = False
@@ -155,7 +170,7 @@ class Dealer(Participant):
         self.play(deck)
 
 class Players:
-    all_busted = None
+    all_busted = False
 
     def __init__(self, players: list[Player]) -> None:
         self.list = players
@@ -164,11 +179,14 @@ class Players:
         self.all_busted = True
         for player in self.list:
             ui.print_borders(f'{player.name.upper()}\'S TURN')
+            ui.print_bet_size(player)
             ui.print_dealers_hand(dealer)
             player.busted = False
             player.play(deck)
             if not player.busted:
                 self.all_busted = False
+            time.sleep(2)
+        
 
     def choose_bet_sizes(self):
         for player in self.list:

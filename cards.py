@@ -88,3 +88,8 @@ class Hand:
                 number_of_aces -= 1
 
         return score
+
+    def split_possible(self):
+        return len(self.cards) == 2 and self.cards[0].rank == self.cards[1].rank
+
+
