@@ -1,92 +1,99 @@
 import time
-from user_interface import UserInterface as ui
+from user_interface import ui
+from cards import Hand, Deck
+
+
 
 class Participant:
-    hand = None
+    current_hand = None
     score = None
-    busted = False
     got_blackjack = False
+    busted = False
     
     def hit(self, deck):
-        time.sleep(1)
-        new_card = deck.cards.pop(0)
-        self.hand.cards.append(new_card)
-        print(f'{self.name} hits... {str(new_card)}')
-        self.score = self.hand.calculate_score()
+        new_card = self.current_hand.deal_card(deck)
+        ui.print_player_hits(self.name, new_card)
 
     def stand(self):
-        print(f'{self.name} stands.')
-        print(f'{self.name} score: {self.score}')
-        time.sleep(1)
-
+        ui.print_player_stands(self)
+        
 
 class Player(Participant):
+    pending_hands = []
+    completed_hands = []
    
-    def __init__(self, name: str, balance: float, player_id: int) -> None:
+    def __init__(self, name: str, balance: float) -> None:
         self.name = name
         self.balance = balance
-        self.player_id = player_id
 
     def choose_bet_size(self):
-        bet_size = float('inf')
-        while bet_size > self.balance:
-            if bet_size != float('inf'):
-                print('Bet size larger than balance, please enter amount smaller than balance.')
-            bet_size = float(input(f'{self.name} bet size: £ '))
+        bet_size = ui.get_player_bet_size(self)
         
         self.bet_size = bet_size
         self.balance -= bet_size
 
-    def lose(self):
-        self.round_result = 'lose'
+    def split(self, deck):
+        ui.print_player_splits(self)
+        
+        self.balance -= self.current_hand.bet_size
+        hand_1 = Hand([self.current_hand.cards[0]], self.current_hand.bet_size)
+        hand_2 = Hand([self.current_hand.cards[1]], self.current_hand.bet_size)
+        hand_1.deal_card(deck)
+        hand_2.deal_card(deck)
+        self.current_hand = hand_1
+        self.pending_hands.insert(0, hand_2)
 
-    def win(self):
-        self.balance += 2 * self.bet_size
-        self.round_result = 'win'
+        self.play(deck)
 
-    def bust(self):
-        print(f'{self.name} score: {self.score}')
-        print(f'PLAYER BUST')
-        self.round_result = 'bust'
-        self.busted = True
+    def double(self, deck):        
+        self.current_hand.bet_size *= 2
+        new_card = self.current_hand.deal_card(deck)
 
-    def push(self):
-        self.round_result = 'push'
+        ui.print_player_doubles(self, new_card)
+        
+        self.play(deck, hit_once=True)
+        
+    def calculate_profit_loss(self):
+        profit_loss = 0
+        for hand in self.completed_hands:
+            profit_loss += hand.calculate_profit_loss()
+        
+        return profit_loss
 
-    def double(self, deck):
-        time.sleep(1)
-        self.bet_size *= 2
-        new_card = deck.cards.pop(0)
-        self.hand.cards.append(new_card)
-        print(f'{self.name} doubles... {str(new_card)}')
-        self.play(deck, double=True)
-        time.sleep(1)
+    def start_turn(self, deck, dealer):
+        ui.print_player_start_turn(self, dealer)
 
-    def blackjack(self):
-        self.balance += self.bet_size * 2.5
-        self.round_result = 'blackjack'
+        while self.pending_hands:
+            self.current_hand = self.pending_hands.pop(0)
+            self.play(deck)
+            completed_hands = self.completed_hands + [self.current_hand]
+            self.completed_hands = completed_hands
 
-    def play(self, deck, double=False):
-        self.score = self.hand.calculate_score()
-        print(f'{self.name}\'s hand: {str(self.hand)}, Score: {self.score}')
+    def play(self, deck, hit_once=False):
+        self.current_hand.score = self.current_hand.calculate_score()
+        ui.display_player_hands(self)
             
-        if self.score > 21:
-            self.bust()
+        if self.current_hand.score > 21:
+            self.current_hand.bust(self)
             return
 
-        if self.score == 21:
-            if len(self.hand.cards) == 2:
-                self.got_blackjack = True
+        if self.current_hand.score == 21:
+            if len(self.current_hand.cards) == 2:
+                self.current_hand.got_blackjack = True
             self.stand()
             return
 
-        if double:
+        if hit_once:
             return
 
         decision = ui.find_player_decision(self)
         
         if decision.lower() == 's':
             self.stand()
+            return
+
+        if decision.lower() == 'sp':
+            self.split(deck)
             return
 
         if decision.lower() == 'd':
@@ -98,41 +105,6 @@ class Player(Participant):
 
         self.play(deck)
 
-        print(' ')
-    
-    def determine_result(self, dealer):
-        if self.busted:
-            ## player lost 
-            self.lose()
-            return
-
-        if dealer.busted:
-            ## player wins
-            self.win()
-            return
-
-        if self.got_blackjack:
-            if not dealer.got_blackjack:
-                self.blackjack()
-            else:
-                self.push()
-            return
-
-        if self.score > dealer.score:
-            ## player wins
-            self.win()
-            return
-
-        if self.score == dealer.score:
-            ## push
-            self.push()
-            return
-
-        if self.score < dealer.score:
-            ## player loses
-            self.lose()
-            return
-
     def process_balance(self):
         if self.balance <= 0:
             # cannot play, delete player
@@ -143,66 +115,30 @@ class Dealer(Participant):
     name = 'Dealer'
 
     def bust(self):
-        print(f'{self.name} score: {self.score}')
-        print(f'DEALER BUST')
+        ui.print_dealer_bust(self)
         self.busted = True
-        time.sleep(1)
 
     def play(self, deck):
-        self.busted = False
-        self.score = self.hand.calculate_score()
+        self.current_hand.score = self.current_hand.calculate_score()
 
         ui.print_dealers_hand_and_score(self)
 
-        if self.score > 21:
+        if self.current_hand.score > 21:
             self.bust()
             return
 
-        if self.score == 21 and len(self.hand.cards) == 2:
+        if self.current_hand.score == 21 and len(self.current_hand.cards) == 2:
             self.got_blackjack = True
             self.stand()
+            return
 
-        if self.score >= 17:
+        if self.current_hand.score >= 17:
             self.stand()
             return
 
         self.hit(deck)
         self.play(deck)
 
-class Players:
-    all_busted = False
 
-    def __init__(self, players: list[Player]) -> None:
-        self.list = players
 
-    def play_round(self, deck, dealer):
-        self.all_busted = True
-        for player in self.list:
-            ui.print_borders(f'{player.name.upper()}\'S TURN')
-            ui.print_bet_size(player)
-            ui.print_dealers_hand(dealer)
-            player.busted = False
-            player.play(deck)
-            if not player.busted:
-                self.all_busted = False
-            time.sleep(2)
-        
-
-    def choose_bet_sizes(self):
-        for player in self.list:
-            player.choose_bet_size()
-
-    def determine_results(self, dealer):
-        for player in self.list:
-            player.determine_result(dealer)
-
-    def process_balances(self):
-        players_to_remove = []
-        for player in self.list:
-            if player.balance <= 0:
-                print(f'{player.name} has run out of money.\nRemoving player...')
-                players_to_remove.append(player)
-
-        for player in players_to_remove:
-            self.list.remove(player)
             
