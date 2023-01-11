@@ -29,7 +29,7 @@ class Card:
 
         return f'{self.rank}{self.ascii_value}'
 
-    def get_ascii_value(self):
+    def get_ascii_value(self) -> str:
         """
         Returns the ascii representation of a card suit
         """
@@ -47,7 +47,7 @@ class Deck:
     ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K']
     cards = []
 
-    def __init__(self, deck_size=1) -> None:
+    def __init__(self, deck_size: int = 1) -> None:
         """
         Initialize a deck of card and set the number of decks
         """
@@ -72,7 +72,7 @@ class Deck:
 
         self.cards = shuffled_deck
 
-    def deal(self, players, dealer):
+    def deal(self, players, dealer) -> None:
         """
         Deal cards to players and dealer
         """
@@ -89,7 +89,7 @@ class Hand:
     got_blackjack = False
     busted = False
 
-    def __init__(self, cards, bet_size=None) -> None:
+    def __init__(self, cards, bet_size: float = 0) -> None:
         """
         Initialize a hand with the cards and bet size and 
         calculate the score of the hand
@@ -107,7 +107,7 @@ class Hand:
             card_string += f'{card.rank}{card.ascii_value} '
         return card_string
 
-    def calculate_score(self):
+    def calculate_score(self) -> int:
         """
         Compute the score of the hand based on the cards 
         in the hand and the number of Aces
@@ -129,13 +129,13 @@ class Hand:
 
         return score
 
-    def split_possible(self):
+    def split_possible(self) -> bool:
         """
         Check if split possible. True if hand has 2 cards which are the same.
         """
         return len(self.cards) == 2 and self.cards[0].rank == self.cards[1].rank
 
-    def split(self):
+    def split(self) -> list:
         """
         if possible to split, return two new hands with 
         the cards split evenly
@@ -143,7 +143,7 @@ class Hand:
         hands = [Hand(self.cards[0], Hand(self.cards[1]))]
         return hands
 
-    def deal_card(self, deck):
+    def deal_card(self, deck: Deck) -> Card:
         """
         deal card to the current hand from the deck
         """
@@ -160,7 +160,7 @@ class Hand:
         self.round_result = 'bust'
         self.busted = True
 
-    def calculate_profit_loss(self):
+    def calculate_profit_loss(self) -> float:
         """
         Calculate profit and loss for this hand depending on the round results
         """

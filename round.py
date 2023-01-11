@@ -6,7 +6,7 @@ from user_interface import ui
 class Round:
     players = []
 
-    def __init__(self, players: list[Player], dealer: Dealer, deck_size: int) -> None:
+    def __init__(self, players, dealer: Dealer, deck_size: int) -> None:
         """
         Initialize the round with players, dealer and number of decks
         """

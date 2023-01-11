@@ -47,7 +47,7 @@ class BlackjackGame:
         players = ui.get_player_names()
         self.add_players(players)
 
-        self.round = Round(self.players, self.dealer, self.deck_size)
+        self.round = Round(self.players, self.dealer, self.DEFAULT_DECK_SIZE)
 
         while self.round.players:
             self.start_game()

@@ -1,10 +1,11 @@
 import time
 
+
 class UserInterface:
     currency = '£'
 
     def __init__(self) -> None:
-        pass        
+        pass
 
     @staticmethod
     def print_borders(message: str):
@@ -26,6 +27,7 @@ class UserInterface:
         """
         end_round_message = '\nRound finished...'
         print(end_round_message)
+        time.sleep(1)
 
     @staticmethod
     def string_dealers_hand_and_score(dealer):
@@ -62,10 +64,12 @@ class UserInterface:
 
     def print_dealer_start_turn(self, dealer):
         self.print_borders(f'{dealer.name.upper()}\'S TURN')
-        
+        time.sleep(2)
+
     @staticmethod
     def print_removing_player(player):
         print(f'{player.name} has run out of money.\nRemoving player...')
+        time.sleep(1)
 
     def print_bet_size(self, hand):
         """
@@ -84,11 +88,12 @@ class UserInterface:
         Parameters:
             - player: The Player object
         """
-        hands = player.completed_hands + [player.current_hand] + player.pending_hands
+        hands = player.completed_hands + \
+            [player.current_hand] + player.pending_hands
         if len(hands) == 1:
-            hand_string = f'\n{player.name}\'s hand: \nBet size: {self.currency}{hands[0].bet_size}\n{str(player.current_hand)}, Score: {player.current_hand.score}' 
-        else: 
-            hand_string = f'\n{player.name}\'s hands:' 
+            hand_string = f'\n{player.name}\'s hand: \nBet size: {self.currency}{hands[0].bet_size}\n{str(player.current_hand)}, Score: {player.current_hand.score}'
+        else:
+            hand_string = f'\n{player.name}\'s hands:'
             for hand in hands:
                 hand_string += f'\nBet size: {self.currency}{hand.bet_size}\n{str(hand)}, Score: {hand.score}'
                 if hand == player.current_hand:
@@ -98,7 +103,7 @@ class UserInterface:
 
     @staticmethod
     def get_hand_string(hand):
-        return f'{str(hand)}, Score: {hand.score}' 
+        return f'{str(hand)}, Score: {hand.score}'
 
     def print_balances(self, players):
         """
@@ -108,6 +113,7 @@ class UserInterface:
         for player in players:
             players_balance_message += f'{player.name}: {self.currency}{str(player.balance)}, '
         print(players_balance_message[:-2])
+        time.sleep(1)
 
     @staticmethod
     def print_hands(players, dealer):
@@ -116,6 +122,7 @@ class UserInterface:
             players_hand_message += f'{player.name}: {str(player.pending_hands[0])}, '
         players_hand_message = players_hand_message[:-2] + '\n'
         print(players_hand_message)
+        time.sleep(0.5)
         input('Press enter to start round ')
         print('Starting round...')
 
@@ -123,21 +130,23 @@ class UserInterface:
     def print_dealer_bust(dealer):
         print(f'{dealer.name} score: {dealer.current_hand.score}')
         print(f'DEALER BUST')
+        time.sleep(1)
 
     @staticmethod
     def print_player_bust(player):
         print(f'{player.name} score: {player.current_hand.score}')
         print(f'PLAYER BUST')
+        time.sleep(1)
 
     def print_new_round(self, players):
         self.print_borders('NEW ROUND')
+        time.sleep(1.5)
         self.print_balances(players)
 
     def print_start_round(self, players, dealer):
         """
         Prints the details for the start of the round.
         """
-
         self.print_balances(players)
         self.print_hands(players, dealer)
 
@@ -162,35 +171,50 @@ class UserInterface:
             profit_loss = f'{self.currency}{player.round_profit_loss}' if player.round_profit_loss > 0 else f'-{self.currency}{-player.round_profit_loss}'
             round_result += f'\n{player.name} total round result: {profit_loss}'
         self.print_borders(round_result)
+        time.sleep(3)
 
     def print_game_over(self):
+        """
+        Prints a message indicating that the game is over and the player can exit.
+        """
         self.print_borders('All players have been busted, game over!')
 
     @staticmethod
     def print_player_stands(player):
         print(f'{player.name} stands.')
         print(f'{player.name} score: {player.current_hand.score}')
+        time.sleep(1)
 
     @staticmethod
     def print_player_hits(name, new_card):
-        print(f'{name} hits... {str(new_card)}')
+        print(f'{name} hits... ')
+        time.sleep(0.5)
+        print(str(new_card))
+        time.sleep(1)
 
     @staticmethod
     def print_player_splits(player):
         print(f'{player.name} splits.')
+        time.sleep(0.5)
 
     def print_player_doubles(self, player, new_card):
-        print(f'{player.name} doubles. Bet size: {self.currency}{player.current_hand.bet_size}... {str(new_card)}')
+        print(
+            f'{player.name} doubles. Bet size: {self.currency}{player.current_hand.bet_size}...')
+        time.sleep(0.5)
+        print(str(new_card))
+        time.sleep(1)
 
     def get_player_bet_size(self, player):
         while True:
             try:
-                bet_size = float(input(f'{player.name} bet size: {self.currency} '))
+                bet_size = float(
+                    input(f'{player.name} bet size: {self.currency} '))
                 if bet_size <= 0:
                     print('Please choose a bet size greater than 0.')
                     continue
                 if bet_size > player.balance:
-                    print(f'Please choose bet size less than player balance ({self.currency}{player.balance}).')
+                    print(
+                        f'Please choose bet size less than player balance ({self.currency}{player.balance}).')
                     continue
                 break
             except ValueError:
@@ -203,7 +227,7 @@ class UserInterface:
         for d in valid_decisions:
             string += f"'{d}', "
         string = string[:-2] + '.'
-        return string     
+        return string
 
     @staticmethod
     def get_input_word(input):
@@ -259,7 +283,8 @@ class UserInterface:
 
             elif decision in ['d', 'sp'] and player.current_hand.bet_size > player.balance:
                 print(f'Not enough funds.')
-                print(f'Bet size: {self.currency}{player.current_hand.bet_size}')
+                print(
+                    f'Bet size: {self.currency}{player.current_hand.bet_size}')
                 print(f'Balance: {self.currency}{player.balance}')
                 decision = ''
 
@@ -268,7 +293,8 @@ class UserInterface:
     def get_player_balance(self, name):
         while True:
             try:
-                balance = float(input(f'How much money is {name} playing with? {self.currency} '))
+                balance = float(
+                    input(f'How much money is {name} playing with? {self.currency} '))
                 if balance <= 0:
                     print("Please enter a valid balance amount greater than 0.")
                     continue
@@ -286,7 +312,8 @@ class UserInterface:
         names = set()
         name = 'None'
         while len(players) <= 4:
-            name = input(f'Type name of player {len(players) + 1} (type F to finish): ')
+            name = input(
+                f'Type name of player {len(players) + 1} (type F to finish): ')
 
             if name.lower() == 'f':
                 if len(players) > 0:
@@ -299,14 +326,15 @@ class UserInterface:
             if name in names:
                 print("Name already in use, please try a different name.")
                 continue
+
+            name = name.strip().capitalize()
             names.add(name)
 
             balance = self.get_player_balance(name)
-            player = {'name':name, 'balance':float(balance)}
+            player = {'name': name, 'balance': float(balance)}
             players.append(player)
 
         return players
-
 
 
 ui = UserInterface()
