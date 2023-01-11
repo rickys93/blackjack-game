@@ -1,6 +1,4 @@
-0.1 Player hits, and deal card to hand
-0.2 Change class Players to class Round (eg round.players instead of players.list) 
-1. Error catch on user inputs
+
+
 2. Add comments
 3. Add types for inputs/outputs of functions
-4. Make the UserInterface class better/easier to understand

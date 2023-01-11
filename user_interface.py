@@ -1,6 +1,7 @@
 import time
 
 class UserInterface:
+    currency = '£'
 
     def __init__(self) -> None:
         pass        
@@ -66,18 +67,16 @@ class UserInterface:
     def print_removing_player(player):
         print(f'{player.name} has run out of money.\nRemoving player...')
 
-    @staticmethod
-    def print_bet_size(hand):
+    def print_bet_size(self, hand):
         """
         Prints the bet size of a hand.
 
         Parameters:
             - hand: The Hand object
         """
-        print(f'Bet size: £{hand.bet_size}')
+        print(f'Bet size: {self.currency}{hand.bet_size}')
 
-    @staticmethod
-    def display_player_hands(player):
+    def display_player_hands(self, player):
         """
         Prints all of the player's hands, including completed, current, and pending hands.
         Indicates which hand is the current hand with "<<<<".
@@ -87,11 +86,11 @@ class UserInterface:
         """
         hands = player.completed_hands + [player.current_hand] + player.pending_hands
         if len(hands) == 1:
-            hand_string = f'\n{player.name}\'s hand: \nBet size: £{hands[0].bet_size}\n{str(player.current_hand)}, Score: {player.current_hand.score}' 
+            hand_string = f'\n{player.name}\'s hand: \nBet size: {self.currency}{hands[0].bet_size}\n{str(player.current_hand)}, Score: {player.current_hand.score}' 
         else: 
             hand_string = f'\n{player.name}\'s hands:' 
             for hand in hands:
-                hand_string += f'\nBet size: £{hand.bet_size}\n{str(hand)}, Score: {hand.score}'
+                hand_string += f'\nBet size: {self.currency}{hand.bet_size}\n{str(hand)}, Score: {hand.score}'
                 if hand == player.current_hand:
                     hand_string += ' <<<<'
 
@@ -101,14 +100,13 @@ class UserInterface:
     def get_hand_string(hand):
         return f'{str(hand)}, Score: {hand.score}' 
 
-    @staticmethod
-    def print_balances(players):
+    def print_balances(self, players):
         """
         Prints the current balances for each player.
         """
         players_balance_message = '\nPlayer bank balances...\n'
         for player in players:
-            players_balance_message += f'{player.name}: £{str(player.balance)}, '
+            players_balance_message += f'{player.name}: {self.currency}{str(player.balance)}, '
         print(players_balance_message[:-2])
 
     @staticmethod
@@ -153,15 +151,15 @@ class UserInterface:
             for hand in player.completed_hands:
                 round_result += '\n' + self.get_hand_string(hand)
                 if hand.round_result == 'blackjack':
-                    round_result += f' BLACKJACK!! Win £{hand.bet_size}!'
+                    round_result += f' BLACKJACK!! Win {self.currency}{hand.bet_size}!'
                 if hand.round_result == 'win':
-                    round_result += f' WIN £{hand.bet_size}!'
+                    round_result += f' WIN {self.currency}{hand.bet_size}!'
                 if hand.round_result == 'lose':
-                    round_result += f' LOSE £{hand.bet_size}'
+                    round_result += f' LOSE {self.currency}{hand.bet_size}'
                 if hand.round_result == 'push':
                     round_result += f' PUSH '
 
-            profit_loss = f'£{player.round_profit_loss}' if player.round_profit_loss > 0 else f'-£{-player.round_profit_loss}'
+            profit_loss = f'{self.currency}{player.round_profit_loss}' if player.round_profit_loss > 0 else f'-{self.currency}{-player.round_profit_loss}'
             round_result += f'\n{player.name} total round result: {profit_loss}'
         self.print_borders(round_result)
 
@@ -181,21 +179,44 @@ class UserInterface:
     def print_player_splits(player):
         print(f'{player.name} splits.')
 
-    @staticmethod
-    def print_player_doubles(player, new_card):
-        print(f'{player.name} doubles. Bet size: £{player.current_hand.bet_size}... {str(new_card)}')
+    def print_player_doubles(self, player, new_card):
+        print(f'{player.name} doubles. Bet size: {self.currency}{player.current_hand.bet_size}... {str(new_card)}')
 
-    @staticmethod
-    def get_player_bet_size(player):
-        bet_size = float('inf')
-        while bet_size > player.balance:
-            if bet_size != float('inf'):
-                print('Bet size larger than balance, please enter amount smaller than balance.')
-            bet_size = float(input(f'{player.name} bet size: £ '))
+    def get_player_bet_size(self, player):
+        while True:
+            try:
+                bet_size = float(input(f'{player.name} bet size: {self.currency} '))
+                if bet_size <= 0:
+                    print('Please choose a bet size greater than 0.')
+                    continue
+                if bet_size > player.balance:
+                    print(f'Please choose bet size less than player balance ({self.currency}{player.balance}).')
+                    continue
+                break
+            except ValueError:
+                print("Please enter a valid bet size greater than 0.")
         return bet_size
 
     @staticmethod
-    def get_input_question(player):
+    def invalid_decision_string(valid_decisions):
+        string = "Invalid input. Please enter "
+        for d in valid_decisions:
+            string += f"'{d}', "
+        string = string[:-2] + '.'
+        return string     
+
+    @staticmethod
+    def get_input_word(input):
+        if input == 'h':
+            return 'Hit'
+        if input == 's':
+            return 'Stand'
+        if input == 'sp':
+            return 'Split'
+        if input == 'd':
+            return 'Double'
+
+    def get_input_question(self, allowed_inputs):
         """
         Creates a string that asks the user which decision to take.
 
@@ -205,20 +226,19 @@ class UserInterface:
         Returns:
             - The input question (a string)
         """
-        input_question_words = 'Hit/Stand'
-        input_question_letters = '(H/S'
-        if player.current_hand.split_possible():
-            input_question_words += '/Split'
-            input_question_letters += '/SP'
-        if len(player.current_hand.cards) == 2:
-            input_question_words += '/Double'
-            input_question_letters += '/D'
-        input_question_words += '? '
-        input_question_letters += ') '
+        input_question_words = ''
+        input_question_letters = '('
+        for input in allowed_inputs:
+            input_question_words += self.get_input_word(input) + '/'
+            input_question_letters += input.upper() + '/'
+
+        input_question_words = input_question_words[:-1] + '? '
+        input_question_letters = input_question_letters[:-1] + ') '
+
         input_question = input_question_words + input_question_letters
         return input_question
 
-    def find_player_decision(self, player) -> str:
+    def find_player_decision(self, player, valid_decisions) -> str:
         """
         Prompts the player to enter their decision (hit, stand, split, or double) and returns their response.
 
@@ -229,32 +249,59 @@ class UserInterface:
             - The player's decision (a string)
         """
 
-        input_question = self.get_input_question(player)
+        input_question = self.get_input_question(valid_decisions)
         decision = ''
         while not decision:
             decision = input(input_question)
-            if decision in ['d', 'sp'] and player.current_hand.bet_size > player.balance:
-                print(f'Not enough funds.')
-                print(f'Bet size: £{player.current_hand.bet_size}')
-                print(f'Balance: £{player.balance}')
+            if decision not in valid_decisions:
                 decision = ''
+                print(self.invalid_decision_string(valid_decisions))
+
+            elif decision in ['d', 'sp'] and player.current_hand.bet_size > player.balance:
+                print(f'Not enough funds.')
+                print(f'Bet size: {self.currency}{player.current_hand.bet_size}')
+                print(f'Balance: {self.currency}{player.balance}')
+                decision = ''
+
         return decision
 
-    @staticmethod
-    def get_player_names() -> list:
+    def get_player_balance(self, name):
+        while True:
+            try:
+                balance = float(input(f'How much money is {name} playing with? {self.currency} '))
+                if balance <= 0:
+                    print("Please enter a valid balance amount greater than 0.")
+                    continue
+                return balance
+            except ValueError:
+                print("Please enter a valid balance amount.")
+                continue
+
+    def get_player_names(self) -> list:
         """
         Ask for names of players and bank balance upon first starting the game.
         """
 
         players = []
+        names = set()
         name = 'None'
-        while len(players) <= 4 and name:
-            name = input(f'Type name of player {len(players) + 1} (leave blank if completed): ')
-            if not name and len(players) > 0:
-                break
+        while len(players) <= 4:
+            name = input(f'Type name of player {len(players) + 1} (type F to finish): ')
 
-            balance = input(f'How much money is {name} playing with? ')
+            if name.lower() == 'f':
+                if len(players) > 0:
+                    break
+                print('Need to have at least one player')
+                continue
+            if not name:
+                print("Please enter a valid name.")
+                continue
+            if name in names:
+                print("Name already in use, please try a different name.")
+                continue
+            names.add(name)
 
+            balance = self.get_player_balance(name)
             player = {'name':name, 'balance':float(balance)}
             players.append(player)
 
