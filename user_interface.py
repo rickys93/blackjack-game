@@ -168,7 +168,7 @@ class UserInterface:
                 if hand.round_result == 'push':
                     round_result += f' PUSH '
 
-            profit_loss = f'{self.currency}{player.round_profit_loss}' if player.round_profit_loss > 0 else f'-{self.currency}{-player.round_profit_loss}'
+            profit_loss = f'{self.currency}{player.round_profit_loss}' if player.round_profit_loss >= 0 else f'-{self.currency}{-player.round_profit_loss}'
             round_result += f'\n{player.name} total round result: {profit_loss}'
         self.print_borders(round_result)
         time.sleep(3)
