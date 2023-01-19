@@ -177,7 +177,7 @@ class UserInterface:
         """
         Prints a message indicating that the game is over and the player can exit.
         """
-        self.print_borders('All players have been busted, game over!')
+        self.print_borders('Game over! Thanks for playing!')
 
     @staticmethod
     def print_player_stands(player):
@@ -335,6 +335,14 @@ class UserInterface:
             players.append(player)
 
         return players
+
+    @staticmethod
+    def stop_game():
+        decision = input("Enter to start new round (Q to quit): ")
+        if decision:
+            return decision.lower() == 'q'
+
+        return False
 
 
 ui = UserInterface()

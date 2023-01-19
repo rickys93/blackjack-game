@@ -15,6 +15,7 @@ class BlackjackGame:
         self.DEFAULT_DECK_SIZE = 7
         self.players = []
         self.dealer = Dealer()
+        self.stop_game = False
 
     def start_game(self):
         """
@@ -22,6 +23,9 @@ class BlackjackGame:
         Initialize the round, play players turn, play dealer's turn if required,
         determine results and process balances
         """
+        if ui.stop_game():
+            self.stop_game = True
+            return
 
         self.round.initialize()
         self.round.players_turn()
@@ -49,7 +53,7 @@ class BlackjackGame:
 
         self.round = Round(self.players, self.dealer, self.DEFAULT_DECK_SIZE)
 
-        while self.round.players:
+        while self.round.players and not self.stop_game:
             self.start_game()
 
         ui.print_game_over()
