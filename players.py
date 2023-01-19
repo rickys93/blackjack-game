@@ -1,4 +1,3 @@
-import time
 from user_interface import ui
 from cards import Hand, Deck
 
