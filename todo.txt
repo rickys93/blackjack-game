@@ -1,4 +1,5 @@
 
-
-2. Add comments
+1. Finish documentation on user interface
+2. Add comments for more complicated parts
 3. Add types for inputs/outputs of functions
+4. Create tests
